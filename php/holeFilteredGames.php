@@ -2,13 +2,29 @@
 
 require("config.php");
 
+$selectedPlattform = $_POST['plattform'] ?? [];
+$selectedFach = $_POST['fach'] ?? [];
 
-// Filterwerte aus der Anfrage erhalten
-$selectedPlattform = $_POST['plattform'];
-$selectedFach = $_POST['fach'];
+$separatedPlattform = explode(",", $selectedPlattform);
+$separatedFach = explode(",", $selectedFach);
 
-$placeholderPlattform = str_repeat('?,', count($selectedPlattform) - 1) . '?';
-$placeholderFach = str_repeat('?,', count($selectedFach) - 1) . '?';
+$arraySelectedPlattform = (array) $separatedPlattform;
+$arraySelectedFach = (array) $separatedFach;
+
+$selectedPlattformFormatted = '';
+$selectedFachFormatted = '';
+
+if (count($arraySelectedPlattform) > 1) {
+    $selectedPlattformFormatted = "'".implode("', '", $separatedPlattform)."'";
+} else {
+    $selectedPlattformFormatted = "'".$selectedPlattform."'";
+}
+
+if (count($arraySelectedFach) > 1) {
+    $selectedFachFormatted = "'".implode("', '", $separatedFach)."'";
+} else {
+    $selectedFachFormatted = "'".$selectedFach."'";
+}
 
 
 $sql = "
@@ -21,50 +37,36 @@ FROM games
 JOIN fach_game ON games.ID = fach_game.game_ID
 JOIN fach ON fach_game.fach_ID = fach.ID
 JOIN plattform_game ON games.ID = plattform_game.game_ID
-JOIN plattform ON plattform_game.plattform_ID = plattform.ID";
+JOIN plattform ON plattform_game.plattform_ID = plattform.ID
+WHERE ";
 
 if (!empty($selectedPlattform)) {
-    $sql .= "
-    WHERE plattform.ID IN ($placeholderPlattform)";
+    $sql .= "plattform.name IN ('$selectedPlattform')";
 }
 
 if (!empty($selectedFach)) {
     if (!empty($selectedPlattform)) {
-        $sql .= " AND"; 
-    } else {
-        $sql .= " WHERE";
+        $sql .= " AND ";
     }
-    $sql .= " fach.ID IN ($placeholderFach)";
+    $sql .= "fach.name IN ($selectedFachFormatted)";
 }
 
 $sql .= "
 GROUP BY games.name, games.beschreibung, games.bild
-ORDER BY games.name ASC
-";
+ORDER BY games.name ASC";
 
 $stmt = $pdo->prepare($sql);
-// $erfolg = $stmt->execute();
 
-// Füge die ausgewählten Plattformen und Fächer als Parameter hinzu
-$params = array_merge($selectedPlattform, $selectedFach);
-$success = $stmt->execute($params);
-
+$success = $stmt->execute();
 
 if ($success) {
-
     $rows = $stmt->fetchAll();
 
     foreach ($rows as &$row) {
-        $row['plattform_bild'] = explode(',', $row['plattform_bild']); // Wandelt die Bild-URLs in ein Array um
+        $row['plattform_bild'] = explode(',', $row['plattform_bild']);
     }
 
     echo json_encode($rows);
-
 } else {
-
     echo json_encode(array('error' => 'Fehler beim Abrufen der Daten.'));
-
 }
-
-
-

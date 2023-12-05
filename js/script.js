@@ -32,7 +32,6 @@ function holeGames(){
 function gamesAnzeigen(data) {
 
     let listeLeer = document.getElementById("list");
-
     listeLeer.innerHTML = "";
 
     data.forEach(game => {
@@ -95,7 +94,7 @@ function holeFilter() {
                     let plattformContainer = document.createElement("div");
                     plattformContainer.innerHTML =
             
-                        `<input type="checkbox" id="${plattform.name}" name="plattform" value="${plattform.nameä}"/>
+                        `<input type="checkbox" id="${plattform.name}" name="plattform" value="${plattform.name}"/>
                         <label for="${plattform.name}"><img src="${plattform.bild}" alt="${plattform.name}" /> <span>${plattform.name} (${plattform.game_count})</span></label>
                         `;
             
@@ -123,22 +122,25 @@ function getFilteredGames() {
     let selectedPlattform = Array.from(document.querySelectorAll('input[name="plattform"]:checked')).map(checkbox => checkbox.value);
     let selectedFach = Array.from(document.querySelectorAll('input[name="fach"]:checked')).map(checkbox => checkbox.value);
 
-    let requestData = {
-        plattform: selectedPlattform,
-        fach: selectedFach
-    };
+    if (selectedFach.length == 0 && selectedPlattform.length == 0) {
+        holeGames();
+        return;
+    }
 
-    console.log(requestData);
+    let formData = new FormData();
+    formData.append('plattform', selectedPlattform);
+    formData.append('fach', selectedFach);
 
     var url = 'php/holeFilteredGames.php';
 
     fetch(url, {
-        body: JSON.stringify(requestData),
-        method: 'post', 
+        body: formData,
+        method: 'POST', 
+        
     })
         .then(res => {
 
-            if (res.ok) {
+            if (res.status >= 200 && res.status < 300) {
 
                 return res.json();
 
@@ -151,10 +153,9 @@ function getFilteredGames() {
         .then(data => {
 
             gamesAnzeigen(data);
-            console.log(data);
-
+            // console.log(data);
+            
         })
 
     
 }
-
