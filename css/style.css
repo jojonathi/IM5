@@ -1,11 +1,3 @@
-/* :root {
-  --darkgrey: #392b35;
-  --beige: #d1bfb0;
-  --green: #7a9c96;
-  --blue: #486b7f;
-  --red: #bb474f;
-} */
-
 :root {
   --darkgrey: #392b35;
   --lightgreen: #A9D9B2;
@@ -218,5 +210,9 @@ footer {
 @media only screen and (max-width: 800px) {
   #list {
     grid-template-columns: 1fr;
+  }
+
+  #introText {
+    width: 95%;
   }
 }
