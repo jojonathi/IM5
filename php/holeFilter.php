@@ -26,10 +26,24 @@ $stmtPlattform = $pdo->prepare($sqlPlattform);
 $stmtPlattform->execute();
 $plattformResult = $stmtPlattform->fetchAll();
 
+// Hole der eindeutigen Genres
+$sqlGenre = "
+SELECT genre.name, COUNT(DISTINCT genre_game.game_ID) AS game_count
+FROM genre
+LEFT JOIN genre_game ON genre.ID = genre_game.genre_ID
+GROUP BY genre.name
+HAVING game_count > 0
+";
+
+$stmtGenre = $pdo->prepare($sqlGenre);
+$stmtGenre->execute();
+$genreResult = $stmtGenre->fetchAll();
+
 // Kombinieren der Filterwerte in einem Array
 $filterData = [
     "fach" => $fachResult,
-    "plattform" => $plattformResult
+    "plattform" => $plattformResult,
+    "genre" => $genreResult
 ];
 
 // Rückgabe der Filterwerte als JSON
